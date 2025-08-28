@@ -8,8 +8,16 @@ const rl = createInterface({
 // Uncomment this block to pass the first stage
 function prompt() {
   rl.question("$ ", (answer: string) => {
-    console.log(`${answer}: command not found`);
-    prompt();
+    switch (answer) {
+      case "exit 0":
+        rl.close();
+        break;
+      default:
+        console.log(`${answer}: command not found`);
+        prompt();
+
+    }
+
   });
 }
 
