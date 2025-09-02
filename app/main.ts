@@ -5,6 +5,19 @@ const rl = createInterface({
   output: process.stdout,
 });
 
+const isBuiltin = (cmd: string) => {
+  switch (cmd) {
+    case "exit":
+    case "echo":
+    case "type"
+      console.log(`${cmd} is a shell bultin`)
+      break;
+    default:
+      console.log(`${cmd}: not found`)
+
+  }
+}
+
 // Uncomment this block to pass the first stage
 let prompt = () => {
   rl.question("$ ", (answer: string) => {
@@ -17,6 +30,10 @@ let prompt = () => {
         console.log(rest.join(" "));
         prompt();
         break;
+      case "type":
+        isBuiltin(rest[0])
+        prompt()
+        break;
       default:
         console.log(`${answer}: command not found`);
         prompt();
@@ -25,3 +42,5 @@ let prompt = () => {
 };
 
 prompt();
+
+
