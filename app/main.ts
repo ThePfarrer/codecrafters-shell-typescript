@@ -6,19 +6,22 @@ const rl = createInterface({
 });
 
 // Uncomment this block to pass the first stage
-function prompt() {
+let prompt = () => {
   rl.question("$ ", (answer: string) => {
-    switch (answer) {
-      case "exit 0":
+    const [first, ...rest] = answer.split(" ");
+    switch (first) {
+      case "exit":
         rl.close();
+        break;
+      case "echo":
+        console.log(rest.join(" "));
+        prompt();
         break;
       default:
         console.log(`${answer}: command not found`);
         prompt();
-
     }
-
   });
-}
+};
 
 prompt();
