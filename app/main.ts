@@ -9,7 +9,7 @@ const isBuiltin = (cmd: string) => {
   switch (cmd) {
     case "exit":
     case "echo":
-    case "type"
+    case "type":
       console.log(`${cmd} is a shell bultin`)
       break;
     default:
