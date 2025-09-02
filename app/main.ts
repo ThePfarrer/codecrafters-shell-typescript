@@ -10,7 +10,7 @@ const isBuiltin = (cmd: string) => {
     case "exit":
     case "echo":
     case "type":
-      console.log(`${cmd} is a shell bultin`)
+      console.log(`${cmd} is a shell builtin`)
       break;
     default:
       console.log(`${cmd}: not found`)
