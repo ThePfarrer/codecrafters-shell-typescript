@@ -3,7 +3,6 @@ import * as fs from "fs";
 import { createInterface } from "readline";
 
 const PATH = process.env.PATH ? process.env.PATH.split(":") : [];
-
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -11,6 +10,7 @@ const rl = createInterface({
 
 const isBuiltin = (cmd: string) => {
   switch (cmd) {
+    case "cd":
     case "echo":
     case "exit":
     case "pwd":
@@ -69,6 +69,15 @@ let prompt = () => {
       case "pwd":
         const currDir = process.cwd()
         console.log(currDir)
+        prompt()
+        break;
+      case "cd":
+        const dirPath = rest.join(" ")
+        try {
+          process.chdir(dirPath)
+        } catch (err) {
+          console.log(`cd: ${dirPath}: No such file or directory`)
+        }
         prompt()
         break;
       default:
