@@ -1,13 +1,14 @@
-import { execSync } from "child_process";
 import * as fs from "fs";
 import { createInterface } from "readline";
 
-const PATH = process.env.PATH ? process.env.PATH.split(":") : [];
+const PATH = process.env.PATH?.split(":")
 
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
+// process.
 
 const isBuiltin = (cmd: string) => {
   switch (cmd) {
@@ -16,21 +17,19 @@ const isBuiltin = (cmd: string) => {
     case "type":
       console.log(`${cmd} is a shell builtin`)
       break;
+    case cmd:
+      for (const path of PATH) {
+        const fullPath = `${path}/${cmd}`
+        if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
+          console.log(`${cmd} is ${fullPath}`)
+          return
+        }
+      }
+
     default:
-      const [found, fullPath] = searchPath(cmd)
-      found ? console.log(`${cmd} is ${fullPath}`) : console.log(`${cmd}: not found`)
+      console.log(`${cmd}: not found`)
 
   }
-}
-
-const searchPath = (command: string) => {
-  for (const path of PATH) {
-    const fullPath = `${path}/${command}`
-    if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
-      return [true, fullPath]
-    }
-  }
-  return [false, ""]
 }
 
 const isExecutable = (filePath: string) => {
@@ -60,22 +59,16 @@ let prompt = () => {
         prompt();
         break;
       case "type":
-        if (rest[0] !== undefined) {
-          isBuiltin(rest[0])
-        }
+        isBuiltin(rest[0])
         prompt()
         break;
       default:
-        const [found, fullPath] = searchPath(first)
-        if (found) {
-          const result = execSync(answer).toString().trim()
-          console.log(result)
-        }
-        else { console.log(`${first}: command not found`) }
+        console.log(`${answer}: command not found`);
         prompt();
     }
   });
 };
 
 prompt();
+
 
