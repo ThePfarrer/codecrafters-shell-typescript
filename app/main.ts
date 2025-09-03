@@ -11,8 +11,9 @@ const rl = createInterface({
 
 const isBuiltin = (cmd: string) => {
   switch (cmd) {
-    case "exit":
     case "echo":
+    case "exit":
+    case "pwd":
     case "type":
       console.log(`${cmd} is a shell builtin`)
       break;
@@ -63,6 +64,11 @@ let prompt = () => {
         if (rest[0] !== undefined) {
           isBuiltin(rest[0])
         }
+        prompt()
+        break;
+      case "pwd":
+        const currDir = process.cwd()
+        console.log(currDir)
         prompt()
         break;
       default:
