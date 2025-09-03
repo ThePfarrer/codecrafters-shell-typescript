@@ -3,6 +3,7 @@ import * as fs from "fs";
 import { createInterface } from "readline";
 
 const PATH = process.env.PATH ? process.env.PATH.split(":") : [];
+const HOME = process.env.HOME
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -72,7 +73,10 @@ let prompt = () => {
         prompt()
         break;
       case "cd":
-        const dirPath = rest.join(" ")
+        let dirPath = rest.join(" ")
+        if (dirPath.startsWith("~")) {
+          dirPath = `${HOME}${dirPath.slice(1)}`
+        }
         try {
           process.chdir(dirPath)
         } catch (err) {
