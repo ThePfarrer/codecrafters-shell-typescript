@@ -23,7 +23,9 @@ const parseInput = (input: string): string[] => {
 
     if (isEscaped) {
       currentArg += char
-      isEscaped = !isEscaped
+      isEscaped = false
+    } else if (char === "\\" && !inDoubleQuotes) {
+      isEscaped = true
     } else if (char === "'" && !inDoubleQuotes) {
       inSingleQuotes = !inSingleQuotes
     } else if (char === "\"" && !inSingleQuotes) {
