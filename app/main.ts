@@ -16,20 +16,26 @@ const parseInput = (input: string): string[] => {
   let currentArg = ""
   let inSingleQuotes = false
   let inDoubleQuotes = false
+  let isEscaped = false
 
   for (let i = 0; i < input.length; i++) {
     const char = input[i]
 
-    if (char === "'" && !inDoubleQuotes) {
+    if (isEscaped) {
+      currentArg += char
+      isEscaped = false
+    } else if (char === "'" && !inDoubleQuotes) {
       inSingleQuotes = !inSingleQuotes
-    } else if (char === "\"" && !inSingleQuotes) { inDoubleQuotes = !inDoubleQuotes }
-    else if (char === " " && !inSingleQuotes && !inDoubleQuotes) {
+    } else if (char === "\"" && !inSingleQuotes) {
+      inDoubleQuotes = !inDoubleQuotes
+    } else if (char === "\\" && !inSingleQuotes && !inDoubleQuotes) {
+      isEscaped = !isEscaped
+    } else if (char === " " && !inSingleQuotes && !inDoubleQuotes) {
       if (currentArg.length > 0) {
         args.push(currentArg)
         currentArg = ""
       }
-    }
-    else {
+    } else {
       currentArg += char
     }
   }
