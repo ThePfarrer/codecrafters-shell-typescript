@@ -4,6 +4,8 @@ import { createInterface } from "readline";
 
 const PATH = process.env.PATH ? process.env.PATH.split(":") : [];
 const HOME = process.env.HOME
+const BUILTINS = ["echo", "exit", "type", "pwd", "cd"]
+
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -13,13 +15,15 @@ const parseInput = (input: string): string[] => {
   const args: string[] = []
   let currentArg = ""
   let inSingleQuotes = false
+  let inDoubleQuotes = false
 
   for (let i = 0; i < input.length; i++) {
     const char = input[i]
 
-    if (char === "'") {
+    if (char === "'" && !inDoubleQuotes) {
       inSingleQuotes = !inSingleQuotes
-    } else if (char === " " && !inSingleQuotes) {
+    } else if (char === "\"" && !inSingleQuotes) { inDoubleQuotes = !inDoubleQuotes }
+    else if (char === " " && !inSingleQuotes && !inDoubleQuotes) {
       if (currentArg.length > 0) {
         args.push(currentArg)
         currentArg = ""
@@ -59,7 +63,6 @@ const isExecutable = (filePath: string): boolean => {
 
 const handleEcho = (args: string[]): void => {
   console.log(args.join(" "));
-
 }
 
 const handleExit = (args: string[]): void => {
@@ -75,8 +78,7 @@ const handleType = (args: string[]): void => {
   const command = args[0]
   if (!command) return
 
-  const builtins = ["echo", "exit", "type", "pwd", "cd"]
-  if (builtins.includes(command)) {
+  if (BUILTINS.includes(command)) {
     console.log(`${command} is a shell builtin`)
     return
   }
@@ -89,19 +91,20 @@ const handleType = (args: string[]): void => {
 
 const handleCd = (args: string[]): void => {
   let dirPath = args.join(" ")
+
   if (!dirPath) {
-    // No directory provided, default to HOME
     dirPath = HOME || process.cwd();
   }
+
   if (dirPath.startsWith("~")) {
     dirPath = `${HOME}${dirPath.slice(1)}`
   }
+
   try {
     process.chdir(dirPath)
   } catch (err) {
     console.log(`cd: ${dirPath}: No such file or directory`)
   }
-
 }
 
 const handleExternalCommand = (command: string, fullInput: string): void => {
