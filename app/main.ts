@@ -25,7 +25,7 @@ const isBuiltin = (cmd: string) => {
   }
 }
 
-const searchPath = (command: string) => {
+const searchPath = (command: string): [boolean, string] => {
   for (const path of PATH) {
     const fullPath = `${path}/${command}`
     if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
@@ -35,7 +35,7 @@ const searchPath = (command: string) => {
   return [false, ""]
 }
 
-const isExecutable = (filePath: string) => {
+const isExecutable = (filePath: string): boolean => {
   try {
     fs.accessSync(filePath, fs.constants.X_OK);
     return true
@@ -44,57 +44,85 @@ const isExecutable = (filePath: string) => {
   }
 }
 
+const handleEcho = (args: string[]): void => {
+  console.log(args.join(" "));
 
-// Uncomment this block to pass the first stage
-let prompt = () => {
-  rl.question("$ ", (answer: string) => {
-    const [first, ...rest] = answer.trim().split(" ");
-    switch (first) {
-      case "":
-        prompt()
-        break
-      case "exit":
-        let exitCode = parseInt(rest[0])
-        exitCode = Number.isNaN(exitCode) ? 0 : exitCode
-        process.exit(exitCode)
-      case "echo":
-        console.log(rest.join(" "));
-        prompt();
-        break;
-      case "type":
-        if (rest[0] !== undefined) {
-          isBuiltin(rest[0])
-        }
-        prompt()
-        break;
-      case "pwd":
-        const currDir = process.cwd()
-        console.log(currDir)
-        prompt()
-        break;
-      case "cd":
-        let dirPath = rest.join(" ")
-        if (dirPath.startsWith("~")) {
-          dirPath = `${HOME}${dirPath.slice(1)}`
-        }
+}
+
+const handleExit = (args: string[]): void => {
+  const exitCode = parseInt(args[0]) || 0
+  process.exit(exitCode)
+}
+
+const handlePwd = (): void => {
+  console.log(process.cwd())
+}
+
+const handleType = (args: string[]): void => {
+  const command = args[0]
+  if (!command) return
+
+  const builtins = ["echo", "exit", "type", "pwd", "cd"]
+  if (builtins.includes(command)) {
+    console.log(`${command} is a shell builtin`)
+    return
+  }
+
+  const [found, fullPath] = searchPath(command)
+  if (found) {
+    console.log(`${command} is ${fullPath}`)
+  } else { console.log(`${command}: not found`) }
+}
+
+const executeCommand = (input: string): void => {
+  const [command, ...args] = input.trim().split(" ");
+  switch (command) {
+    case "":
+      break
+    case "exit":
+      handleExit(args)
+      break
+    case "echo":
+      handleEcho(args)
+      break;
+    case "type":
+      handleType(args)
+      break;
+    case "pwd":
+      handlePwd()
+      break;
+    case "cd":
+      let dirPath = args.join(" ")
+      if (dirPath.startsWith("~")) {
+        dirPath = `${HOME}${dirPath.slice(1)}`
+      }
+      try {
+        process.chdir(dirPath)
+      } catch (err) {
+        console.log(`cd: ${dirPath}: No such file or directory`)
+      }
+      break;
+    default:
+      const [found, fullPath] = searchPath(command)
+      if (found) {
         try {
-          process.chdir(dirPath)
-        } catch (err) {
-          console.log(`cd: ${dirPath}: No such file or directory`)
-        }
-        prompt()
-        break;
-      default:
-        const [found, fullPath] = searchPath(first)
-        if (found) {
-          const result = execSync(answer).toString().trim()
+          const result = execSync(input).toString().trim()
           console.log(result)
         }
-        else { console.log(`${first}: command not found`) }
-        prompt();
-    }
+        catch (err) {
+        }
+      }
+      else { console.log(`${command}: command not found`) }
+  }
+}
+
+
+// Uncomment this block to pass the first stage
+const prompt = (): void => {
+  rl.question("$ ", (answer: string) => {
+    executeCommand(answer)
+    prompt()
   });
 };
 
 prompt();
-
