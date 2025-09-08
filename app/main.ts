@@ -9,6 +9,35 @@ const rl = createInterface({
   output: process.stdout,
 });
 
+const parseInput = (input: string): string[] => {
+  const args: string[] = []
+  let currentArg = ""
+  let inSingleQuotes = false
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i]
+
+    if (char === "'") {
+      inSingleQuotes = !inSingleQuotes
+    } else if (char === " " && !inSingleQuotes) {
+      if (currentArg.length > 0) {
+        args.push(currentArg)
+        currentArg = ""
+      }
+    }
+    else {
+      currentArg += char
+    }
+  }
+
+  if (currentArg.length > 0) {
+    args.push(currentArg)
+  }
+
+
+  return args
+}
+
 const searchPath = (command: string): [boolean, string] => {
   for (const dir of PATH) {
     const fullPath = `${dir}/${command}`
@@ -89,7 +118,8 @@ const handleExternalCommand = (command: string, fullInput: string): void => {
 }
 
 const executeCommand = (input: string): void => {
-  const [command, ...args] = input.trim().split(" ");
+  const parsedArgs = parseInput(input.trim())
+  const [command, ...args] = parsedArgs
   switch (command) {
     case "":
       break

@@ -1,0 +1,27 @@
+const parseInput = (input: string): string[] => {
+  const args: string[] = [];
+  let currentArg = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+
+    if (char === "'") {
+      inQuotes = !inQuotes;
+      // Don't add the quote to the argument
+    } else if (char === ' ' && !inQuotes) {
+      if (currentArg.length > 0) {
+        args.push(currentArg);
+        currentArg = "";
+      }
+    } else {
+      currentArg += char;
+    }
+  }
+
+  if (currentArg.length > 0) {
+    args.push(currentArg);
+  }
+
+  return args;
+};
