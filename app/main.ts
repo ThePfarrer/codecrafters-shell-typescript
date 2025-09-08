@@ -9,25 +9,9 @@ const rl = createInterface({
   output: process.stdout,
 });
 
-const isBuiltin = (cmd: string) => {
-  switch (cmd) {
-    case "cd":
-    case "echo":
-    case "exit":
-    case "pwd":
-    case "type":
-      console.log(`${cmd} is a shell builtin`)
-      break;
-    default:
-      const [found, fullPath] = searchPath(cmd)
-      found ? console.log(`${cmd} is ${fullPath}`) : console.log(`${cmd}: not found`)
-
-  }
-}
-
 const searchPath = (command: string): [boolean, string] => {
-  for (const path of PATH) {
-    const fullPath = `${path}/${command}`
+  for (const dir of PATH) {
+    const fullPath = `${dir}/${command}`
     if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
       return [true, fullPath]
     }
@@ -74,6 +58,36 @@ const handleType = (args: string[]): void => {
   } else { console.log(`${command}: not found`) }
 }
 
+const handleCd = (args: string[]): void => {
+  let dirPath = args.join(" ")
+  if (!dirPath) {
+    // No directory provided, default to HOME
+    dirPath = HOME || process.cwd();
+  }
+  if (dirPath.startsWith("~")) {
+    dirPath = `${HOME}${dirPath.slice(1)}`
+  }
+  try {
+    process.chdir(dirPath)
+  } catch (err) {
+    console.log(`cd: ${dirPath}: No such file or directory`)
+  }
+
+}
+
+const handleExternalCommand = (command: string, fullInput: string): void => {
+  const [found] = searchPath(command)
+  if (found) {
+    try {
+      const result = execSync(fullInput, { encoding: "utf-8" }).trim()
+      console.log(result)
+    }
+    catch (err) {
+    }
+  }
+  else { console.log(`${command}: command not found`) }
+}
+
 const executeCommand = (input: string): void => {
   const [command, ...args] = input.trim().split(" ");
   switch (command) {
@@ -92,27 +106,10 @@ const executeCommand = (input: string): void => {
       handlePwd()
       break;
     case "cd":
-      let dirPath = args.join(" ")
-      if (dirPath.startsWith("~")) {
-        dirPath = `${HOME}${dirPath.slice(1)}`
-      }
-      try {
-        process.chdir(dirPath)
-      } catch (err) {
-        console.log(`cd: ${dirPath}: No such file or directory`)
-      }
+      handleCd(args)
       break;
     default:
-      const [found, fullPath] = searchPath(command)
-      if (found) {
-        try {
-          const result = execSync(input).toString().trim()
-          console.log(result)
-        }
-        catch (err) {
-        }
-      }
-      else { console.log(`${command}: command not found`) }
+      handleExternalCommand(command, input)
   }
 }
 
